@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "author": "Ezra Ben Mukisa",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-s3-devkitc-1",
+      "id": "esp",
+      "top": 35.77,
+      "left": 11.18,
+      "rotate": 90,
+      "attrs": { "builder": "esp-idf" }
+    },
+    { "type": "board-mfrc522", "id": "rfid1", "top": -60.25, "left": 185.84, "attrs": {} }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "rfid1:3.3V", "esp:3V3.1", "green", [ "h0" ] ],
+    [ "rfid1:GND", "esp:GND.2", "black", [ "h-19.2", "v86.4", "h38.4", "v96" ] ],
+    [ "rfid1:SDA", "esp:5", "green", [ "h0" ] ],
+    [ "rfid1:SCK", "esp:12", "green", [ "h0" ] ],
+    [ "rfid1:MOSI", "esp:11", "green", [ "h0" ] ],
+    [ "rfid1:MISO", "esp:13", "green", [ "h0" ] ],
+    [ "rfid1:RST", "esp:4", "green", [ "h0" ] ]
+  ],
+  "dependencies": {}
+}

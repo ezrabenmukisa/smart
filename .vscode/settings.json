@@ -1,0 +1,10 @@
+{
+    "idf.currentSetup": "/Users/mukisabenezra/.espressif/v6.0.2/esp-idf",
+    "clangd.path": "/Users/mukisabenezra/.espressif/tools/esp-clang/esp-20.1.1_20250829/esp-clang/bin/clangd",
+    "clangd.arguments": [
+      "--background-index",
+      "--query-driver=**",
+      "--compile-commands-dir=/Users/mukisabenezra/Documents/PlatformIO/Projects/smartcocis/build"
+    ],
+    "cmake.configureOnOpen": false
+}
