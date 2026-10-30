@@ -11,7 +11,39 @@
       "rotate": 90,
       "attrs": { "builder": "esp-idf" }
     },
-    { "type": "board-mfrc522", "id": "rfid1", "top": -60.25, "left": 185.84, "attrs": {} }
+    { "type": "board-mfrc522", "id": "rfid1", "top": -60.25, "left": 185.84, "attrs": {} },
+    {
+      "type": "wokwi-pir-motion-sensor",
+      "id": "pir1",
+      "top": -24.8,
+      "left": -189.78,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-pir-motion-sensor",
+      "id": "pir2",
+      "top": -24.8,
+      "left": -295.38,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": 332.4,
+      "left": 80.6,
+      "rotate": 90,
+      "attrs": { "color": "blue", "flip": "1" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led2",
+      "top": 258,
+      "left": 150.6,
+      "rotate": 90,
+      "attrs": { "color": "red", "flip": "1" }
+    },
+    { "type": "wokwi-gnd", "id": "gnd1", "top": 316.8, "left": 133.8, "attrs": {} },
+    { "type": "wokwi-gnd", "id": "gnd2", "top": 374.4, "left": 57, "attrs": {} }
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
@@ -22,7 +54,17 @@
     [ "rfid1:SCK", "esp:12", "green", [ "h0" ] ],
     [ "rfid1:MOSI", "esp:11", "green", [ "h0" ] ],
     [ "rfid1:MISO", "esp:13", "green", [ "h0" ] ],
-    [ "rfid1:RST", "esp:4", "green", [ "h0" ] ]
+    [ "rfid1:RST", "esp:4", "green", [ "h0" ] ],
+    [ "pir1:VCC", "esp:5V", "red", [ "v38.4", "h124.8" ] ],
+    [ "pir2:VCC", "esp:5V", "red", [ "v38.4", "h220.8" ] ],
+    [ "pir2:GND", "esp:GND.1", "black", [ "v28.8", "h201.34", "v28.8" ] ],
+    [ "pir1:GND", "esp:GND.1", "black", [ "v19.2", "h86.14" ] ],
+    [ "pir2:OUT", "esp:19", "green", [ "v163.2", "h230.26" ] ],
+    [ "pir1:OUT", "esp:20", "green", [ "v172.8", "h134.26" ] ],
+    [ "led2:C", "gnd1:GND", "green", [ "h-9.6", "v0", "h-9.6", "v-9.6" ] ],
+    [ "led2:A", "esp:1", "green", [ "h0" ] ],
+    [ "led1:A", "esp:2", "green", [ "h-6.8", "v-74", "h38.4" ] ],
+    [ "led1:C", "gnd2:GND", "green", [ "h-16.4", "v2.4" ] ]
   ],
   "dependencies": {}
 }
