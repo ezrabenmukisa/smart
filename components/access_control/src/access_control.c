@@ -3,6 +3,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "access_control.h"
+#include "integration.h"
 #include "driver/gpio.h"
 #include "driver/ledc.h"
 #include "esp_timer.h"
@@ -161,6 +162,14 @@ bool access_handle_scan(door_id_t door, const uint8_t *uid, uint8_t len)
     ESP_LOGI(TAG, "[%s] %s (%s)", s_door_name[door],
              ok ? "ACCESS GRANTED" : "ACCESS DENIED", reason);
 
+    // report the event to the shared integration component
+    access_result_t r;
+    if (ok)                      r = (door == DOOR_ENTRY) ? ACCESS_GRANTED_ENTRY : ACCESS_GRANTED_EXIT;
+    else if (idx < 0)            r = ACCESS_DENIED_UNKNOWN_CARD;
+    else if (door == DOOR_ENTRY) r = ACCESS_DENIED_ALREADY_INSIDE;
+    else                         r = ACCESS_DENIED_NOT_INSIDE;
+    integration_post_access_event((access_door_t)door, uid, len, r);
+    
     if (ok) {
         servo_write_us(door, SERVO_OPEN_US);
         gpio_set_level(LED_GREEN_PIN, 1);
