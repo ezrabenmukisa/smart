@@ -8,6 +8,7 @@
 #include "esp_log.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
+#include "integration.h"
 
 #define ROOM1_SENSOR GPIO_NUM_19
 #define ROOM1_LED GPIO_NUM_1
@@ -27,6 +28,17 @@ typedef struct{
     bool occupied;
     bool light_on;
 }room_t;
+
+static void report_room(room_t *room)
+   {
+       room_status_t s = { .room = (room_id_t)room->id };
+       if (xSemaphoreTake(room_mutex, portMAX_DELAY) == pdTRUE) {
+           s.occupied = room->occupied;
+           s.light_on = room->light_on;
+           xSemaphoreGive(room_mutex);
+       }
+       integration_publish_room_status(&s);
+   }
 
 room_t room1={
     .id=1,
@@ -77,7 +89,7 @@ void timer_callback(TimerHandle_t timer){
     }
 
     gpio_set_level(room->led, 0);
-    
+    report_room(room);
     ESP_LOGI("ROOM", "Room %lu | Occupied: NO | Light: OFF",
              (unsigned long)room->id);
 }
@@ -96,6 +108,7 @@ void light_task(void *pvParameters){
                 }
             gpio_set_level(ROOM1_LED, 1);
             xTimerReset(room1_timer, 0);
+              report_room(&room1);
             ESP_LOGI("ROOM 1", "Occupied: %s | Light: ON",
              room1.occupied ? "YES" : "NO");
         }
@@ -111,6 +124,7 @@ void light_task(void *pvParameters){
 
             gpio_set_level(ROOM2_LED, 1);
             xTimerReset(room2_timer, 0);
+              report_room(&room2);
             ESP_LOGI("ROOM 2", "Occupied: %s | Light: ON",
              room2.occupied ? "YES" : "NO");
         }
