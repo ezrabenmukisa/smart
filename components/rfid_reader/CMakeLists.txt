@@ -1,3 +1,3 @@
-idf_component_register(SRCS "rfid_reader.c"
+idf_component_register(SRCS "src/rfid_reader.c"
                        INCLUDE_DIRS "include"
-                       REQUIRES rc522)
+                       REQUIRES rc522 access_control)
