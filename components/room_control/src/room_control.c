@@ -10,10 +10,10 @@
 #include "freertos/semphr.h"
 #include "integration.h"
 
-#define ROOM1_SENSOR GPIO_NUM_19
+#define ROOM1_SENSOR GPIO_NUM_15
 #define ROOM1_LED GPIO_NUM_1
 
-#define ROOM2_SENSOR GPIO_NUM_20
+#define ROOM2_SENSOR GPIO_NUM_16
 #define ROOM2_LED GPIO_NUM_2
 
 TimerHandle_t room1_timer;
