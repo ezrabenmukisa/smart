@@ -72,6 +72,7 @@
       "id": "pir2",
       "top": -178.4,
       "left": -535.38,
+
       "attrs": {}
     },
     {
@@ -80,6 +81,7 @@
       "top": 34.8,
       "left": -389.8,
       "attrs": { "color": "blue", "flip": "" }
+
     },
     {
       "type": "wokwi-led",
@@ -90,6 +92,7 @@
     },
     { "type": "wokwi-gnd", "id": "gnd1", "top": -134.4, "left": -384.6, "attrs": {} },
     { "type": "wokwi-gnd", "id": "gnd2", "top": 86.4, "left": -403.8, "attrs": {} }
+
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
@@ -130,6 +133,7 @@
     [ "led1:A", "esp:2", "green", [ "h96", "v105.6", "h336", "v-76.8" ] ],
     [ "led1:C", "gnd2:GND", "green", [] ],
     [ "pir1:OUT", "esp:16", "green", [ "v0" ] ]
+
   ],
   "dependencies": {}
 }
