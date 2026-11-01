@@ -2,9 +2,7 @@
 
 A Wokwi-simulated smart building system for the College of Computing and Information Sciences (CoCIS), Makerere University. It runs on one **ESP32-S3** and covers three things: RFID access control at the main entrance, motion-based lighting in two lecture rooms, and a serial management console backed by an SD card.
 
-Built with **ESP-IDF 6.0.1** (organised with PlatformIO) and simulated in **Wokwi**.
-
-> Coursework project, BSE III & CS II, academic year 2026/2027.
+>Built with **ESP-IDF 6.0.1** (organised with PlatformIO) and simulated in **Wokwi**.
 
 ---
 
@@ -41,7 +39,7 @@ Built with **ESP-IDF 6.0.1** (organised with PlatformIO) and simulated in **Wokw
 
 ## Architecture
 
-The whole system is one firmware image. Each feature is an ESP-IDF **component**, and the components share data only through the `integration` component.
+Each feature is an ESP-IDF **component**, and the components share data only through the `integration` component.
 
 ```mermaid
 flowchart TB
