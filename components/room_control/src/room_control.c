@@ -289,7 +289,7 @@ if (room_mutex == NULL) {
 report_room(&room1);
 report_room(&room2);
 
-if(xTaskCreate(light_task,"light_task",2048,NULL,5,&light_task_handle)!=pdPASS){
+if(xTaskCreate(light_task,"light_task",6144,NULL,5,&light_task_handle)!=pdPASS){
     printf("Task creation failed");
     return;
 }
