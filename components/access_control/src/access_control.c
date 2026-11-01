@@ -1,3 +1,4 @@
+
 #include <string.h>
 #include <stddef.h>
 #include "freertos/FreeRTOS.h"
@@ -144,12 +145,19 @@ bool access_handle_scan(door_id_t door, const uint8_t *uid, uint8_t len)
     int idx = find_card(uid, len);
     bool ok = false;
     bool outside_schedule = idx >= 0 && !access_schedule_is_allowed_now();
+    uint16_t scan_time_minute = access_schedule_get_clock_minute();   // read before taking s_lock
     const char *reason = "unknown card";
+    access_result_t r;
+    access_event_t event;
+    bool posted;
 
+    // One critical section: decide the result, update the card state and
+    // post the event to the log/occupancy together, so they cannot be
+    // reordered by another scan. Lock order: access s_lock -> integration lock.
+    xSemaphoreTake(s_lock, portMAX_DELAY);
     if (outside_schedule) {
         reason = "outside access schedule";
     } else if (idx >= 0) {
-        xSemaphoreTake(s_lock, portMAX_DELAY);
         if (door == DOOR_ENTRY) {
             if (!s_inside[idx]) {
                 s_inside[idx] = true;
@@ -167,34 +175,34 @@ bool access_handle_scan(door_id_t door, const uint8_t *uid, uint8_t len)
                 reason = "has not entered";
             }
         }
-        xSemaphoreGive(s_lock);
     }
 
-    ESP_LOGI(TAG, "[%s] %s (%s)", s_door_name[door],
-             ok ? "ACCESS GRANTED" : "ACCESS DENIED", reason);
-
-    // report the event to the shared integration component
-    access_result_t r;
     if (ok)                      r = (door == DOOR_ENTRY) ? ACCESS_GRANTED_ENTRY : ACCESS_GRANTED_EXIT;
     else if (idx < 0)            r = ACCESS_DENIED_UNKNOWN_CARD;
     else if (outside_schedule)   r = ACCESS_DENIED_OUTSIDE_SCHEDULE;
     else if (door == DOOR_ENTRY) r = ACCESS_DENIED_ALREADY_INSIDE;
     else                         r = ACCESS_DENIED_NOT_INSIDE;
-    access_event_t event;
-    uint16_t scan_time_minute = access_schedule_get_clock_minute();
-    if (integration_post_access_event((access_door_t)door, uid, len, r,
-                                      scan_time_minute, &event) &&
-        storage_is_ready() && !storage_append_access_event(&event)) {
-        ESP_LOGW(TAG, "could not save access event to SD card");
-    }
-    
+
+    posted = integration_post_access_event((access_door_t)door, uid, len, r,
+                                           scan_time_minute, &event);
+
     if (ok) {
-        xSemaphoreTake(s_lock, portMAX_DELAY);
         s_door_open[door] = true;
         servo_write_us(door, SERVO_OPEN_US);
         gpio_set_level(LED_GREEN_PIN, 1);
         gpio_set_level(LED_RED_PIN, 0);
-        xSemaphoreGive(s_lock);
+    }
+    xSemaphoreGive(s_lock);
+
+    ESP_LOGI(TAG, "[%s] %s (%s)", s_door_name[door],
+             ok ? "ACCESS GRANTED" : "ACCESS DENIED", reason);
+
+    // The slow SD-card write stays outside the lock.
+    if (posted && storage_is_ready() && !storage_append_access_event(&event)) {
+        ESP_LOGW(TAG, "could not save access event to SD card");
+    }
+
+    if (ok) {
         esp_timer_stop(s_close_timer[door]);
         esp_timer_start_once(s_close_timer[door], OPEN_TIME_MS * 1000ULL);
     } else {
