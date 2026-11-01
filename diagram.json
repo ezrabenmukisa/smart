@@ -29,8 +29,9 @@
     {
       "type": "wokwi-microsd-card",
       "id": "sdcard",
-      "top": 160,
-      "left": 620,
+      "top": 69.77,
+      "left": 381.07,
+      "rotate": 90,
       "attrs": {}
     },
     {
@@ -79,7 +80,6 @@
       "id": "pir2",
       "top": -178.4,
       "left": -535.38,
-
       "attrs": {}
     },
     {
@@ -88,7 +88,6 @@
       "top": 34.8,
       "left": -389.8,
       "attrs": { "color": "blue", "flip": "" }
-
     },
     {
       "type": "wokwi-led",
@@ -99,7 +98,6 @@
     },
     { "type": "wokwi-gnd", "id": "gnd1", "top": -134.4, "left": -384.6, "attrs": {} },
     { "type": "wokwi-gnd", "id": "gnd2", "top": 86.4, "left": -403.8, "attrs": {} }
-
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
@@ -110,20 +108,18 @@
     [ "rfid1:MOSI", "esp:11", "green", [ "h-3.21", "v72.11", "v131.95" ] ],
     [ "rfid1:MISO", "esp:13", "green", [ "h-3.21", "v129.71", "v93.55" ] ],
     [ "rfid1:RST", "esp:4", "green", [ "v105.6", "h96.05" ] ],
-    [ "rfid2:3.3V", "esp:3V3.1", "green", [ "v9.6", "h-220.8", "v67.2" ] ],
+    [ "rfid2:3.3V", "esp:3V3.1", "red", [ "v9.6", "h-220.8", "v67.2" ] ],
     [ "rfid2:GND", "esp:GND.2", "black", [ "v-19.2", "h-278.4" ] ],
     [ "rfid2:SDA", "esp:6", "green", [ "v115.2" ] ],
     [ "rfid2:SCK", "esp:12", "green", [ "v230.4" ] ],
     [ "rfid2:MOSI", "esp:11", "green", [ "v230.4", "h-172.75" ] ],
     [ "rfid2:MISO", "esp:13", "green", [ "v240" ] ],
     [ "rfid2:RST", "esp:7", "green", [ "v134.4" ] ],
-    [ "sdcard:VCC", "esp:3V3.1", "red", [] ],
-    [ "sdcard:GND", "esp:GND.2", "black", [] ],
-    [ "sdcard:CS", "esp:8", "green", [] ],
-    [ "sdcard:SCK", "esp:9", "green", [] ],
-    [ "sdcard:DI", "esp:17", "green", [] ],
-    [ "sdcard:DO", "esp:18", "green", [] ],
-    [ "rfid1:3.3V", "esp:3V3.1", "green", [ "v9.6", "h153.6" ] ],
+    [ "sdcard:CS", "esp:8", "green", [ "v28.8", "h-422.41" ] ],
+    [ "sdcard:SCK", "esp:9", "green", [ "v57.6", "h-451.14" ] ],
+    [ "sdcard:DI", "esp:17", "green", [ "v9.6", "h-34.14" ] ],
+    [ "sdcard:DO", "esp:18", "green", [ "v19.2", "h-470.46" ] ],
+    [ "rfid1:3.3V", "esp:3V3.1", "red", [ "v9.6", "h153.6" ] ],
     [ "servo_entry:V+", "esp:5V", "red", [ "h124.8", "v-57.7" ] ],
     [ "servo_exit:V+", "esp:5V", "red", [ "h-105.6", "v0.1", "h-163.2", "v-57.6" ] ],
     [ "servo_entry:GND", "esp:GND.1", "black", [ "h0" ] ],
@@ -145,8 +141,9 @@
     [ "led2:C", "gnd1:GND", "green", [] ],
     [ "led1:A", "esp:2", "green", [ "h96", "v105.6", "h336", "v-76.8" ] ],
     [ "led1:C", "gnd2:GND", "green", [] ],
-    [ "pir1:OUT", "esp:16", "green", [ "v0" ] ]
-
+    [ "pir1:OUT", "esp:16", "green", [ "v0" ] ],
+    [ "sdcard:VCC", "esp:3V3.2", "red", [ "v0" ] ],
+    [ "sdcard:GND", "esp:GND.2", "black", [ "v0" ] ]
   ],
   "dependencies": {}
 }

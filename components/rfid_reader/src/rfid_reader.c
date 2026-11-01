@@ -77,9 +77,6 @@ static void start_reader(reader_t *reader, int cs, int rst, bool init_bus)
 
 void rfid_reader_init(void)
 {
-    /* The RC522 driver reports its normal no-card polling timeouts as
-     * warnings/errors. They are expected while idle and overwhelm the
-     * Serial Monitor, so keep those driver messages out of the console. */
     esp_log_level_set("rc522", ESP_LOG_NONE);
 
     start_reader(&s_entry, ENTRY_CS, ENTRY_RST, true);   // first reader creates the SPI bus
