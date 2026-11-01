@@ -1,0 +1,12 @@
+* [33m44c6d67[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Integration
+* [33ma9fd75a[m Add access event log to integration component
+*   [33m53d1b30[m Resolved merge conflicts in diagram.json & main.c
+[32m|[m[33m\[m  
+[32m|[m * [33m65f1d18[m Corrected conflicting GPIO PIN numbering btwn PIRs & Servos
+[32m|[m * [33mfbcacd8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmanagement_schedule_storage[m[33m, [m[1;32mmain[m[33m)[m Improved compatibilty with integration component
+[32m|[m * [33m28d31e9[m Add integration component for room status
+[32m|[m * [33mec83285[m Implement two-room PIR lighting automation
+* [33m|[m [33m6b148a6[m Servos & Indicator lights
+[33m|[m[33m/[m  
+* [33mb891174[m Re-configured components into components/ for modulability
+* [33m6faed41[m RFID with @abobija_rc522 library

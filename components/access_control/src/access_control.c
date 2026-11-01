@@ -3,7 +3,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "access_control.h"
+#include "access_schedule.h"
 #include "integration.h"
+#include "storage.h"
 #include "driver/gpio.h"
 #include "driver/ledc.h"
 #include "esp_timer.h"
@@ -135,9 +137,12 @@ bool access_handle_scan(door_id_t door, const uint8_t *uid, uint8_t len)
 {
     int idx = find_card(uid, len);
     bool ok = false;
+    bool outside_schedule = idx >= 0 && !access_schedule_is_allowed_now();
     const char *reason = "unknown card";
 
-    if (idx >= 0) {
+    if (outside_schedule) {
+        reason = "outside access schedule";
+    } else if (idx >= 0) {
         xSemaphoreTake(s_lock, portMAX_DELAY);
         if (door == DOOR_ENTRY) {
             if (!s_inside[idx]) {
@@ -166,9 +171,16 @@ bool access_handle_scan(door_id_t door, const uint8_t *uid, uint8_t len)
     access_result_t r;
     if (ok)                      r = (door == DOOR_ENTRY) ? ACCESS_GRANTED_ENTRY : ACCESS_GRANTED_EXIT;
     else if (idx < 0)            r = ACCESS_DENIED_UNKNOWN_CARD;
+    else if (outside_schedule)   r = ACCESS_DENIED_OUTSIDE_SCHEDULE;
     else if (door == DOOR_ENTRY) r = ACCESS_DENIED_ALREADY_INSIDE;
     else                         r = ACCESS_DENIED_NOT_INSIDE;
-    integration_post_access_event((access_door_t)door, uid, len, r);
+    access_event_t event;
+    uint16_t scan_time_minute = access_schedule_get_clock_minute();
+    if (integration_post_access_event((access_door_t)door, uid, len, r,
+                                      scan_time_minute, &event) &&
+        storage_is_ready() && !storage_append_access_event(&event)) {
+        ESP_LOGW(TAG, "could not save access event to SD card");
+    }
     
     if (ok) {
         servo_write_us(door, SERVO_OPEN_US);

@@ -27,6 +27,13 @@
       "attrs": {}
     },
     {
+      "type": "wokwi-microsd-card",
+      "id": "sdcard",
+      "top": 160,
+      "left": 620,
+      "attrs": {}
+    },
+    {
       "type": "wokwi-servo",
       "id": "servo_entry",
       "top": 256.4,
@@ -110,6 +117,12 @@
     [ "rfid2:MOSI", "esp:11", "green", [ "v230.4", "h-172.75" ] ],
     [ "rfid2:MISO", "esp:13", "green", [ "v240" ] ],
     [ "rfid2:RST", "esp:7", "green", [ "v134.4" ] ],
+    [ "sdcard:VCC", "esp:3V3.1", "red", [] ],
+    [ "sdcard:GND", "esp:GND.2", "black", [] ],
+    [ "sdcard:CS", "esp:8", "green", [] ],
+    [ "sdcard:SCK", "esp:9", "green", [] ],
+    [ "sdcard:DI", "esp:17", "green", [] ],
+    [ "sdcard:DO", "esp:18", "green", [] ],
     [ "rfid1:3.3V", "esp:3V3.1", "green", [ "v9.6", "h153.6" ] ],
     [ "servo_entry:V+", "esp:5V", "red", [ "h124.8", "v-57.7" ] ],
     [ "servo_exit:V+", "esp:5V", "red", [ "h-105.6", "v0.1", "h-163.2", "v-57.6" ] ],
