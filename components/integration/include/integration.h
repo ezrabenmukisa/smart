@@ -6,9 +6,9 @@
 typedef enum { ROOM_1 = 1, ROOM_2 = 2 } room_id_t;
 
 typedef struct {
-    room_id_t room;       
-    bool occupied;         
-    bool light_on;         
+    room_id_t room;
+    bool occupied;
+    bool light_on;
     uint32_t timestamp_ms;
 } room_status_t;
 
@@ -20,21 +20,31 @@ typedef enum {
     ACCESS_DENIED_UNKNOWN_CARD,
     ACCESS_DENIED_ALREADY_INSIDE,
     ACCESS_DENIED_NOT_INSIDE,
+    ACCESS_DENIED_OUTSIDE_SCHEDULE,
 } access_result_t;
 
 typedef struct {
-    uint32_t seq;          
-    uint32_t timestamp_ms;  
+    uint32_t seq;
+    uint32_t timestamp_ms;
+    uint16_t time_minute; // simulated time of day when the card was scanned
     access_door_t door;
     access_result_t result;
     uint8_t uid[4];
     uint8_t uid_len;
 } access_event_t;
 
-void integration_init(void);                                         
-bool integration_publish_room_status(const room_status_t *s);       
-bool integration_receive_room_status(room_status_t *out, uint32_t wait_ms); 
-bool integration_get_latest(room_id_t room, room_status_t *out);     
+typedef struct {
+    uint32_t people_inside;
+    uint32_t timestamp_ms;
+} building_status_t;
 
-bool integration_post_access_event(access_door_t door, const uint8_t *uid, uint8_t uid_len, access_result_t result); 
-size_t integration_get_recent_access(access_event_t *out, size_t max);                                              
+void integration_init(void);
+bool integration_publish_room_status(const room_status_t *s);
+bool integration_receive_room_status(room_status_t *out, uint32_t wait_ms);
+bool integration_get_latest(room_id_t room, room_status_t *out);
+
+bool integration_post_access_event(access_door_t door, const uint8_t *uid, uint8_t uid_len,
+                                   access_result_t result, uint16_t time_minute,
+                                   access_event_t *recorded);
+size_t integration_get_recent_access(access_event_t *out, size_t max);
+bool integration_get_building_status(building_status_t *out);

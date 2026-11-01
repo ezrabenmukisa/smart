@@ -2,13 +2,90 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <stdbool.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
 #include "management.h"
+#include "management_reports.h"
+#include "management_internal.h"
+#include "storage.h"
+
+static management_context_t management_context = {
+    .administrator_authenticated = false,
+    .administrator_id = "admin"
+};
+
+void management_print_time(unsigned short minute)
+{
+    printf("%02u:%02u", (unsigned)(minute / 60), (unsigned)(minute % 60));
+}
+
+void management_print_report_title(const char *title)
+{
+    printf("\n-------------------- %s --------------------\n", title);
+}
 
 /* ---------- Console input ---------- */
+
+static bool read_console_line_mode(char *line, size_t size, bool mask_input)
+{
+    static bool skip_lf_after_cr;
+    size_t length = 0;
+    bool overflow = false;
+
+    if (size == 0) return false;
+
+    while (1) {
+        int ch = getchar();
+        if (ch == EOF) {
+            clearerr(stdin);
+            vTaskDelay(pdMS_TO_TICKS(20));
+            continue;
+        }
+
+        if (skip_lf_after_cr) {
+            skip_lf_after_cr = false;
+            if (ch == '\n') continue;
+        }
+
+        if (ch == '\r' || ch == '\n') {
+            if (ch == '\r') skip_lf_after_cr = true;
+            line[length] = '\0';
+            printf("\r\n");
+            return !overflow;
+        }
+
+        if (ch == '\b' || ch == 127) {
+            if (length > 0) {
+                length--;
+                printf("\b \b");
+            }
+            continue;
+        }
+
+        if (ch >= 32 && ch <= 126) {
+            if (length + 1 < size) {
+                line[length++] = (char)ch;
+                putchar(mask_input ? '*' : ch);
+                fflush(stdout);
+            } else {
+                overflow = true;
+            }
+        }
+    }
+}
+
+bool management_read_console_line(char *line, size_t size)
+{
+    return read_console_line_mode(line, size, false);
+}
+
+bool management_read_secret_line(char *line, size_t size)
+{
+    return read_console_line_mode(line, size, true);
+}
 
 static int read_choice(void)
 {
@@ -19,10 +96,8 @@ static int read_choice(void)
         printf("\nEnter choice: ");
         fflush(stdout);
 
-        if (fgets(line, sizeof(line), stdin) == NULL)
-        {
-            clearerr(stdin);
-            vTaskDelay(pdMS_TO_TICKS(100));
+        if (!management_read_console_line(line, sizeof(line))) {
+            printf("Input is too long. Please enter a number from 0 to 12.\n");
             continue;
         }
 
@@ -36,9 +111,9 @@ static int read_choice(void)
             continue;
         }
 
-        if (errno == ERANGE || choice < 0 || choice > 10)
+        if (errno == ERANGE || choice < 0 || choice > 12)
         {
-            printf("Invalid choice. Enter a number from 0 to 10.\n");
+            printf("Invalid choice. Enter a number from 0 to 12.\n");
             continue;
         }
 
@@ -60,16 +135,12 @@ static int read_choice(void)
 
 static void wait_for_enter(void)
 {
-    char line[8];
+    char line[32];
 
     printf("\nPress Enter to return to the menu...");
     fflush(stdout);
 
-    while (fgets(line, sizeof(line), stdin) == NULL)
-    {
-        clearerr(stdin);
-        vTaskDelay(pdMS_TO_TICKS(100));
-    }
+    (void)management_read_console_line(line, sizeof(line));
 }
 
 /* ---------- Menu display ---------- */
@@ -81,70 +152,15 @@ static void print_menu(void)
     printf("2. View Room Status and Lights\n");
     printf("3. Manage Access Schedule\n");
     printf("4. View Recent Access Records\n");
-    printf("5. View Light Usage\n");
-    printf("6. View Complete Event History\n");
-    printf("7. Administrator Login\n");
-    printf("8. View Saved Access Schedule\n");
+    printf("5. View Estimated Light Usage\n");
+    printf("6. View Persisted Event History\n");
+    printf("7. Administrator Login (ID and PIN)\n");
+    printf("8. View Current Access Schedule and Clock\n");
     printf("9. Administrator Logout\n");
     printf("10. Change Administrator PIN\n");
+    printf("11. Set Simulated Current Time (for testing)\n");
+    printf("12. Change Administrator ID\n");
     printf("0. Exit Console\n");
-}
-
-/* ---------- Menu actions ---------- */
-/*
- * These are placeholders until the corresponding component APIs
- * are connected. Keep each action's implementation in its component
- * and call that component's documented function here.
- */
-
-static void show_occupancy(void)
-{
-    printf("\nOccupancy view: connect this to the occupancy component.\n");
-}
-
-static void show_room_status(void)
-{
-    printf("\nRoom status and lights: connect this to the room-control component.\n");
-}
-
-static void manage_access_schedule(void)
-{
-    printf("\nSchedule management: connect this to the schedule/storage handlers.\n");
-}
-
-static void show_recent_records(void)
-{
-    printf("\nRecent records: connect this to the storage component.\n");
-}
-
-static void show_light_usage(void)
-{
-    printf("\nLight usage: connect this to the room-control/storage components.\n");
-}
-
-static void show_event_history(void)
-{
-    printf("\nEvent history: connect this to the storage component.\n");
-}
-
-static void administrator_login(void)
-{
-    printf("\nAdministrator login: connect this to the authentication handler.\n");
-}
-
-static void show_saved_schedule(void)
-{
-    printf("\nSaved schedule: connect this to the schedule/storage handlers.\n");
-}
-
-static void administrator_logout(void)
-{
-    printf("\nAdministrator logout: connect this to the authentication handler.\n");
-}
-
-static void change_administrator_pin(void)
-{
-    printf("\nChange administrator PIN: connect this to the authentication handler.\n");
 }
 
 /* ---------- Management task ---------- */
@@ -162,43 +178,51 @@ static void management_task(void *arg)
         switch (choice)
         {
         case 1:
-            show_occupancy();
+            management_report_show_occupancy();
             break;
 
         case 2:
-            show_room_status();
+            management_report_show_room_status();
             break;
 
         case 3:
-            manage_access_schedule();
+            management_action_manage_schedule(&management_context);
             break;
 
         case 4:
-            show_recent_records();
+            management_report_show_recent_access();
             break;
 
         case 5:
-            show_light_usage();
+            management_report_show_light_usage();
             break;
 
         case 6:
-            show_event_history();
+            management_report_show_event_history();
             break;
 
         case 7:
-            administrator_login();
+            management_action_login(&management_context);
             break;
 
         case 8:
-            show_saved_schedule();
+            management_report_show_schedule();
             break;
 
         case 9:
-            administrator_logout();
+            management_action_logout(&management_context);
             break;
 
         case 10:
-            change_administrator_pin();
+            management_action_change_pin(&management_context);
+            break;
+
+        case 11:
+            management_action_set_clock(&management_context);
+            break;
+
+        case 12:
+            management_action_change_id(&management_context);
             break;
 
         case 0:
@@ -207,7 +231,7 @@ static void management_task(void *arg)
             return;
 
         default:
-            printf("\nInvalid choice. Please select 0 to 10.\n");
+            printf("\nInvalid choice. Please select 0 to 12.\n");
             break;
         }
 
@@ -223,6 +247,12 @@ static void management_task(void *arg)
 
 void management_init(void)
 {
+    if (storage_is_ready()) {
+        char saved_id[sizeof(management_context.administrator_id)];
+        if (storage_load_admin_id(saved_id, sizeof(saved_id)))
+            memcpy(management_context.administrator_id, saved_id, strlen(saved_id) + 1);
+    }
+
     BaseType_t result = xTaskCreate(
         management_task,
         "management_task",

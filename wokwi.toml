@@ -2,3 +2,7 @@
 version = 1
 firmware = '.pio/build/esp32-s3-devkitc-1/firmware.bin'
 elf = '.pio/build/esp32-s3-devkitc-1/firmware.elf'
+
+[[sdcard]]
+folder = 'sdcard'
+writeback = true
