@@ -99,6 +99,7 @@ void timer_callback(TimerHandle_t timer){
         }
         room->occupied = false;
         room->light_on = false;
+        gpio_set_level(room->led, 0);     // LED changes together with the flag, under the mutex
 
         xSemaphoreGive(room_mutex);
     }
@@ -111,7 +112,6 @@ void timer_callback(TimerHandle_t timer){
         xQueueSend(usage_queue, &event, 0);
     }
 
-    gpio_set_level(room->led, 0);
     report_room(room);
     ESP_LOGI("ROOM", "Room %lu | Occupied: NO | Light: OFF",
              (unsigned long)room->id);
@@ -144,12 +144,12 @@ void light_task(void *pvParameters){
                         light_started = true;
                     }
                     room1.light_on = true;
+                    gpio_set_level(ROOM1_LED, 1);     // LED set under the mutex
 
                     xSemaphoreGive(room_mutex);
                 }
             if (light_started && storage_is_ready())
                 storage_append_system_event("LIGHT", "ROOM1 ON");
-            gpio_set_level(ROOM1_LED, 1);
             xTimerReset(room1_timer, 0);
               report_room(&room1);
             ESP_LOGI("ROOM 1", "Occupied: %s | Light: ON",
@@ -165,6 +165,7 @@ void light_task(void *pvParameters){
                         light_started = true;
                     }
                     room2.light_on = true;
+                    gpio_set_level(ROOM2_LED, 1);     // LED set under the mutex
 
                     xSemaphoreGive(room_mutex);
                 }
@@ -172,7 +173,6 @@ void light_task(void *pvParameters){
             if (light_started && storage_is_ready())
                 storage_append_system_event("LIGHT", "ROOM2 ON");
 
-            gpio_set_level(ROOM2_LED, 1);
             xTimerReset(room2_timer, 0);
               report_room(&room2);
             ESP_LOGI("ROOM 2", "Occupied: %s | Light: ON",
@@ -301,7 +301,8 @@ if(xTaskCreate(light_usage_storage_task,"light_usage_storage",6144,NULL,4,NULL)!
 
 
 
-if (gpio_install_isr_service(0)!=ESP_OK){
+esp_err_t isr_err = gpio_install_isr_service(0);
+if (isr_err != ESP_OK && isr_err != ESP_ERR_INVALID_STATE){   // already installed is fine
     printf("ISR service installation failed");
     return;
 }
