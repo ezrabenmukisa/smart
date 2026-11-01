@@ -24,6 +24,7 @@
 #define DENY_TIME_MS    1500
 
 static SemaphoreHandle_t s_lock;
+static bool s_door_open[2];          // which doors are open; protected by s_lock
 
 static const char *TAG = "access_control";
 static const char *s_door_name[2] = { "ENTRY", "EXIT" };
@@ -77,8 +78,13 @@ static void servo_write_us(door_id_t door, uint32_t us)
 static void close_cb(void *arg)
 {
     door_id_t door = (door_id_t)(intptr_t)arg;
+    xSemaphoreTake(s_lock, portMAX_DELAY);
+    s_door_open[door] = false;
     servo_write_us(door, SERVO_CLOSED_US);
-    gpio_set_level(LED_GREEN_PIN, 0);
+    if (!s_door_open[DOOR_ENTRY] && !s_door_open[DOOR_EXIT]) {
+        gpio_set_level(LED_GREEN_PIN, 0);     // green off only when both doors are closed
+    }
+    xSemaphoreGive(s_lock);
 }
 
 static void red_cb(void *arg)
@@ -183,9 +189,12 @@ bool access_handle_scan(door_id_t door, const uint8_t *uid, uint8_t len)
     }
     
     if (ok) {
+        xSemaphoreTake(s_lock, portMAX_DELAY);
+        s_door_open[door] = true;
         servo_write_us(door, SERVO_OPEN_US);
         gpio_set_level(LED_GREEN_PIN, 1);
         gpio_set_level(LED_RED_PIN, 0);
+        xSemaphoreGive(s_lock);
         esp_timer_stop(s_close_timer[door]);
         esp_timer_start_once(s_close_timer[door], OPEN_TIME_MS * 1000ULL);
     } else {
