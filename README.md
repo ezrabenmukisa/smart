@@ -311,7 +311,7 @@ The simulated chip calculates the correct CRC but never sets the CRC-ready flag 
 
 ---
 
-## Known limitations
+## Current limitations
 
 - The **simulated clock restarts at 00:00 at every boot**. After a restart, set the time with menu option 11. The saved schedule itself is reloaded from the SD card.
 - **Card inside/outside states and the occupancy count reset to zero on restart.** The SD card keeps the full event history.
@@ -331,3 +331,4 @@ The simulated chip calculates the correct CRC but never sets the CRC-ready flag 
 | Kristiana B. | Lecture room automation: PIR sensors, room lighting, room status |
 | Abigaba S. | System integration: shared data and communication between components |
 | Gihozo P. | Management menu, schedule, authentication and SD card storage |
+| Tendo M. | Resource synchronization and reliability: shared green LED across both doors, atomic access-event and occupancy update, room LEDs switched under the room mutex, locking rules |
